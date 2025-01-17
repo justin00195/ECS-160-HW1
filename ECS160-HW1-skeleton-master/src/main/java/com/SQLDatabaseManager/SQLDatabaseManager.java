@@ -53,7 +53,7 @@ public class SQLDatabaseManager {
         String select_cmd = "SELECT * FROM Posts";
         List<Post> posts = new ArrayList<Post>();
 
-        try (Connection connection = DriverManager.getConnection(url, user, password);
+        try (Connection connection = DriverManager.getConnection(url, username, password);
              Statement command = connection.createStatement();
              ResultSet resultSet = command.executeQuery(select_cmd)) {
             // iterate through Posts and extract them as a Post
