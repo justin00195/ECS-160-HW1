@@ -6,5 +6,5 @@ CREATE TABLE Posts(
     number_words INT,
     number_replies INT,
     weight DOUBLE PRECISION,
-    parent_id INT REFERENCES posts_id,
+    parent_id INT REFERENCES Posts(post_id)
 );
