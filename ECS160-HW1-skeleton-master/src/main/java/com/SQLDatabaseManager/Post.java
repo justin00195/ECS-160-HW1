@@ -9,8 +9,8 @@ public class Post {
     public String post_content;
     public int number_words;
     public int number_replies;
-    public double weight;
-    public int parent_id;
+    public Double weight;
+    public Integer parent_id;
 
     // Constructor
     public Post(int post_id,
