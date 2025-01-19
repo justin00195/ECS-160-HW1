@@ -20,26 +20,27 @@ public class SQLDatabaseManager {
 
     // method to insert a post into the Posts table
     public void InsertPost(Post post) throws SQLException {
-        String insert_cmd = "INSERT INTO Posts (post_contents, number_words, number_replies, weight, parent_id) VALUES (?, ?, ?, ?, ?)";
+        String insert_cmd = "INSERT INTO Posts (post_id, post_contents, number_words, number_replies, weight, parent_id) VALUES (?, ?, ?, ?, ?, ?)";
 
         // make sure our connection and insert_cmd string are valid
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement command = connection.prepareStatement(insert_cmd)) {
             // insert values to the insert_cmd
-            command.setString(1, post.post_content);
-            command.setInt(2, post.number_words);
-            command.setInt(3, post.number_replies);
+            command.setString(1, post.post_id);
+            command.setString(2, post.post_content);
+            command.setInt(3, post.number_words);
+            command.setInt(4, post.number_replies);
 
             if (post.weight != null) {
-                command.setDouble(4, post.weight);
+                command.setDouble(5, post.weight);
             } else {
-                command.setNull(4, Types.NULL);
+                command.setNull(5, Types.NULL);
             }
 
             if (post.parent_id != null) {
-                command.setDouble(5, post.parent_id);
+                command.setString(6, post.parent_id);
             } else {
-                command.setNull(5, Types.NULL);
+                command.setNull(6, Types.NULL);
             }
 
             // run the insert command
@@ -49,6 +50,7 @@ public class SQLDatabaseManager {
         }
     }
 
+    // extracts all Posts from socialmedia_dbb
     public List<Post> getPosts() throws SQLException {
         String select_cmd = "SELECT * FROM Posts";
         List<Post> posts = new ArrayList<Post>();
@@ -58,12 +60,12 @@ public class SQLDatabaseManager {
              ResultSet resultSet = command.executeQuery(select_cmd)) {
             // iterate through Posts and extract them as a Post
             while(resultSet.next()) {
-                posts.add(new Post(resultSet.getInt("post_id"),
+                posts.add(new Post(resultSet.getString("post_id"),
                                    resultSet.getString("post_contents"),
                                    resultSet.getInt("number_words"),
                                    resultSet.getInt("number_replies"),
                                    resultSet.getDouble("weight"),
-                                   resultSet.getInt("parent_id")
+                                   resultSet.getString("parent_id")
                                   ));
             }
         } catch (SQLException error) {

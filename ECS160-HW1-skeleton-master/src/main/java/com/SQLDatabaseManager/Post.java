@@ -5,20 +5,20 @@ package com.SQLDatabaseManager;
  */
 
 public class Post {
-    public int post_id;
+    public String post_id;
     public String post_content;
     public int number_words;
     public int number_replies;
     public Double weight;
-    public Integer parent_id;
+    public String parent_id;
 
     // Constructor
-    public Post(int post_id,
+    public Post(String post_id,
                 String post_content,
                 int number_words,
                 int number_replies,
                 double weight,
-                int parent_id) {
+                String parent_id) {
         this.post_id = post_id;
         this.post_content = post_content;
         this.number_words = number_words;
