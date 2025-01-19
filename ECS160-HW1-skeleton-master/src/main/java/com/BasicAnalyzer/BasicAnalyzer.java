@@ -18,10 +18,10 @@ public class BasicAnalyzer {
     public List<Post> posts = new ArrayList<Post>();
 
     public static void main(String[] args) {
-
+        
     }
 
-    public void extractJsonPosts() {
+    public void extractJsonPosts(String json_path) {
         URL resource = JsonDeserializer.class.getClassLoader().getResource("input.json");
 
         JsonParser parser = new JsonParser();
@@ -85,6 +85,10 @@ public class BasicAnalyzer {
                                  .max(Comparator.comparingInt(post -> post.number_words))
                                  .orElse(null);
 
-        for
+        for (int i = 0; i < posts.size(); ++i) {
+            Post post = posts.get(i);
+            double weight = (1 + ((double) post.number_words /largest_post.number_words));
+            posts.set(i, post);
+        }
     }
 }
