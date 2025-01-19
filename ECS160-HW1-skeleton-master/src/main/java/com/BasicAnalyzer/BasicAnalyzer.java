@@ -33,8 +33,13 @@ public class BasicAnalyzer {
             }
         }
 
+        // parse the json file
         extractJsonPosts(json_path);
-        System.out.println(posts);
+
+        // if we have weighted=true passed through the command line, calculate the weights of our posts
+        if (weighted) {
+            calculate_weight();
+        }
     }
 
     public static void extractJsonPosts(String json_path) throws URISyntaxException, FileNotFoundException {
@@ -51,7 +56,7 @@ public class BasicAnalyzer {
             for (JsonElement feedObject: feedArray) {
                 // Check if you have the thread key
                 if (feedObject.getAsJsonObject().has("thread")) {
-                    // parse the post and any replies (recursively)?
+                    // parse the post
                     JsonObject thread = feedObject.getAsJsonObject().getAsJsonObject("thread");
                     parseThread(thread);
                 }
@@ -59,6 +64,7 @@ public class BasicAnalyzer {
         }
     }
 
+    // method to parse the thread from our json file
     public static void parseThread(JsonObject thread) {
         String post_id = null;
         String post_content = null;
@@ -66,17 +72,20 @@ public class BasicAnalyzer {
         int number_replies = 0;
         String parent_id = null;
 
+        // if we have a post, extract the data from it
         if (thread.has("post")) {
             JsonObject json_post = thread.getAsJsonObject("post");
 
             post_id = json_post.getAsJsonPrimitive("cid").getAsString();
             number_replies = json_post.getAsJsonPrimitive("replyCount").getAsInt();
 
+            // the text is contained within the record in a post
             if (json_post.has("record")) {
                 post_content = json_post.getAsJsonObject("record").getAsJsonPrimitive("text").getAsString();
-                number_words = post_content.split("\s+").length;
+                number_words = post_content.split("\s+").length; // get the number of words
             }
 
+            // if the post is a reply, get the parent id
             if (json_post.has("reply")) {
                 parent_id = json_post.getAsJsonObject("reply")
                                      .getAsJsonObject("parent")
@@ -85,8 +94,10 @@ public class BasicAnalyzer {
             }
         }
 
+        // append the post to our posts list
         posts.add(new Post(post_id, post_content, number_words, number_replies, 0, parent_id));
 
+        // if our thread has any replies, recursively go through the replies with parseThread
         if (thread.has("replies")) {
             JsonArray replies = thread.getAsJsonArray("replies");
 
@@ -97,14 +108,17 @@ public class BasicAnalyzer {
         }
     }
 
+    // calculates the weight for all Posts in posts
     public static void calculate_weight() {
+        // get the post with most amount of words
         Post largest_post = posts.stream()
                                  .max(Comparator.comparingInt(post -> post.number_words))
                                  .orElse(null);
 
+        // iterate through each post and update their weights
         for (int i = 0; i < posts.size(); ++i) {
             Post post = posts.get(i);
-            double weight = (1 + ((double) post.number_words /largest_post.number_words));
+            double weight = (1 + ((double) post.number_words / largest_post.number_words));
             posts.set(i, post);
         }
     }
