@@ -9,20 +9,36 @@ import java.io.*;
 
 public class BasicAnalyzer {
     // NOTE: Replace these with the link to the database on your machine and your own postgreSQL username and password
-    private final String sql_url = "";
-    private final String sql_username = "postgre";
-    private final String sql_password = "tron_quay_323!";
+    private static final String sql_url = "";
+    private static final String sql_username = "postgre";
+    private static final String sql_password = "tron_quay_323!";
 
-    private SQLDatabaseManager database_manager = new SQLDatabaseManager(sql_url, sql_username, sql_password);
+    private static SQLDatabaseManager database_manager = new SQLDatabaseManager(sql_url, sql_username, sql_password);
 
-    public List<Post> posts = new ArrayList<Post>();
+    public static List<Post> posts = new ArrayList<Post>();
 
-    public static void main(String[] args) {
-        
+    public static void main(String[] args) throws FileNotFoundException, URISyntaxException {
+        String json_path = "input.json";
+        boolean weighted = false;
+
+        // parse our args
+        for (String arg : args) {
+            String cur_arg = arg.replaceAll("\\s", "");
+            if (cur_arg.equals("weighted=true")) {
+                weighted = true;
+            } else if (cur_arg.equals("weighted=false")) {
+                weighted = false;
+            } else {
+                json_path = arg;
+            }
+        }
+
+        extractJsonPosts(json_path);
+        System.out.println(posts);
     }
 
-    public void extractJsonPosts(String json_path) {
-        URL resource = JsonDeserializer.class.getClassLoader().getResource("input.json");
+    public static void extractJsonPosts(String json_path) throws URISyntaxException, FileNotFoundException {
+        URL resource = JsonDeserializer.class.getClassLoader().getResource(json_path);
 
         JsonParser parser = new JsonParser();
 
@@ -43,7 +59,7 @@ public class BasicAnalyzer {
         }
     }
 
-    public void parseThread(JsonObject thread) {
+    public static void parseThread(JsonObject thread) {
         String post_id = null;
         String post_content = null;
         int number_words = 0;
@@ -52,18 +68,19 @@ public class BasicAnalyzer {
 
         if (thread.has("post")) {
             JsonObject json_post = thread.getAsJsonObject("post");
-            post_id = json_post.getAsJsonObject("cid").getAsString();
-            number_replies = json_post.getAsJsonObject("replyCount").getAsInt();
+
+            post_id = json_post.getAsJsonPrimitive("cid").getAsString();
+            number_replies = json_post.getAsJsonPrimitive("replyCount").getAsInt();
 
             if (json_post.has("record")) {
-                post_content = json_post.getAsJsonObject("record").getAsJsonObject("text").getAsString();
+                post_content = json_post.getAsJsonObject("record").getAsJsonPrimitive("text").getAsString();
                 number_words = post_content.split("\s+").length;
             }
 
             if (json_post.has("reply")) {
                 parent_id = json_post.getAsJsonObject("reply")
                                      .getAsJsonObject("parent")
-                                     .getAsJsonObject("cid")
+                                     .getAsJsonPrimitive("cid")
                                      .getAsString();
             }
         }
@@ -80,7 +97,7 @@ public class BasicAnalyzer {
         }
     }
 
-    public void calculate_weight() {
+    public static void calculate_weight() {
         Post largest_post = posts.stream()
                                  .max(Comparator.comparingInt(post -> post.number_words))
                                  .orElse(null);
